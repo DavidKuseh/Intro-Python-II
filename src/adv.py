@@ -1,15 +1,20 @@
-
 from room import Room
 from player import Player
+from item import Item
+
+items = {
+     "Coins": Item("Coins", "Lost Treasure"),
+     "Potato": Item("Potato", "Just a normal potato"),
+     "Sword": Item("Sword", "Arawn's Mighty Blade")
+}
 
 # Declare all the rooms
 
 room = {
-    'outside':  Room("Outside Cave Entrance",
-                     "North of you, the cave mount beckons"),
+    'outside':  Room("Outside Cave Entrance","North of you, the cave mount beckons", [items["Sword"]]),
 
     'foyer':    Room("Foyer", """Dim light filters in from the south. Dusty
-passages run north and east."""),
+passages run north and east.""", [items["Potato"]]),
 
     'overlook': Room("Grand Overlook", """A steep cliff appears before you, falling
 into the darkness. Ahead to the north, a light flickers in
@@ -19,8 +24,7 @@ the distance, but there is no way across the chasm."""),
 to north. The smell of gold permeates the air."""),
 
     'treasure': Room("Treasure Chamber", """You've found the long-lost treasure
-chamber! Sadly, it has already been completely emptied by
-earlier adventurers. The only exit is to the south."""),
+chamber! You see something shiny in the corner. The only exit is to the south.""", [items["Coins"]]),
 }
 
 
@@ -38,55 +42,53 @@ room['treasure'].s_to = room['narrow']
 #
 # Main
 #
-
 # Make a new player object that is currently in the 'outside' room.
 
-new_player = Player("John Price", room['outside'])
+
+new_player = Player("John Price", [], room['outside'])
 
 
-# Write a loop that:
-#
-# * Prints the current room name
-# * Prints the current description (the textwrap module might be useful here).
-# * Waits for user input and decides what to do.
-#
-# If the user enters a cardinal direction, attempt to move to the room there.
-# Print an error message if the movement isn't allowed.
-#
-# If the user enters "q", quit the game.
+
+ui_display = ""
+ui_display += "\nActions: [get item] [drop item]  [i]nventory  [q]uit\n"
+ui_display += "\nMovement: [n]orth  [s]outh  [e]ast  [w]est  \n"
+
+
+directions = ("n", "s", "e", "w")
+
+def err_msg():
+    print(f"\nThat is not a valid input\n")
+    print(new_player.current_room)
+
+print("\n Enter n, s, e or w to navigate between rooms \n Enter 'get item' to pick up item, 'drop item' to get rid of it and 'i' to check your inventory\n Enter q to quit the game ")
 
 while True:
-    try:
-        user = input("[n] Move North  [s] Move South   [e] Move East  [w] Move West  [q] Quit\n")
-  
-        if user == "q":
+
+    user_input = input("-").split()
+
+    if len(user_input) == 1:
+        if user_input[0] == "i":
+            print(new_player)
+
+        elif user_input[0] in directions:
+            new_player.move(user_input[0])
+
+        elif user_input[0] == "q":
+            print("\nYou have quit the game\n")
             break
-
-        elif user == "n":
-            new_player.current_room = new_player.current_room.n_to
-            print(new_player.current_room)
-            continue
-                
-        elif user == "s":
-            new_player.current_room = new_player.current_room.s_to
-            print(new_player.current_room)
-            continue
-
-        elif user == "e":
-            new_player.current_room = new_player.current_room.e_to
-            print(new_player.current_room)
-            continue
-
-        elif user == "w":
-            new_player.current_room = new_player.current_room.w_to
-            print(new_player.current_room)
-            continue
-
+        
         else:
-            print(f"\n{user} is not a valid input. Enter n, w, e or s\n\n")
-            print(new_player.current_room)
-            continue
+            err_msg()
+            continue    
 
-    except AttributeError:
-        new_player.current_room.wrong_room()
-        continue
+
+    elif len(user_input) == 2:
+        if user_input[1] in items:
+            new_player.action(user_input[0], items[user_input[1]])
+        else:
+            err_msg()
+            continue    
+
+    else:
+        err_msg()
+        continue    
